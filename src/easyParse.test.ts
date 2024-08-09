@@ -2,23 +2,133 @@ import { describe, it, expect } from 'vitest'
 import { easyParse } from './easyParse'
 
 describe('easyParse', () => {
-  it('should parse YYYY-MM-DD', () => {
-    const d = easyParse('2020-01-01')
-    expect(d.getFullYear()).toBe(2020)
-    expect(d.getMonth() + 1).toBe(1)
-    expect(d.getDate()).toBe(1)
+  const testFunc = (
+    str: string,
+    result: [number, number, number] | 'error'
+  ) => {
+    if (result === 'error') {
+      return expect(() => easyParse(str)).toThrowError()
+    }
+    const d = easyParse(str)
+    expect(d.getFullYear()).toBe(result[0])
+    expect(d.getMonth() + 1).toBe(result[1])
+    expect(d.getDate()).toBe(result[2])
     expect(d.getHours()).toBe(0)
     expect(d.getMinutes()).toBe(0)
     expect(d.getHours()).toBe(0)
+  }
+  it('2020-01-01', () => {
+    testFunc('2020-01-01', [2020, 1, 1])
+  })
+  it('2020-01', () => {
+    testFunc('2020-01', [2020, 1, 1])
+  })
+  it('2020-1-1', () => {
+    testFunc('2020-1-1', [2020, 1, 1])
+  })
+  it('2020-1', () => {
+    testFunc('2020-1', [2020, 1, 1])
+  })
+  it('9999-01-01', () => {
+    testFunc('9999-01-01', [9999, 1, 1])
   })
 
-  it('should parse YYYY-MM', () => {
-    const d = easyParse('2020-01')
-    expect(d.getFullYear()).toBe(2020)
-    expect(d.getMonth() + 1).toBe(1)
-    expect(d.getDate()).toBe(1)
-    expect(d.getHours()).toBe(0)
-    expect(d.getMinutes()).toBe(0)
-    expect(d.getHours()).toBe(0)
+  // 大きな値
+  it('10000-01-01', () => {
+    testFunc('10000-01-01', [10000, 1, 1])
+  })
+  it('99999-01-01', () => {
+    testFunc('99999-01-01', [99999, 1, 1])
+  })
+  it('100000-01-01', () => {
+    testFunc('100000-01-01', [100000, 1, 1])
+  })
+
+  // 小さな値
+  it('0001-01-01', () => {
+    testFunc('0001-01-01', [1, 1, 1])
+  })
+  it('001-01-01', () => {
+    testFunc('001-01-01', [1, 1, 1])
+  })
+  it('01-01-01', () => {
+    testFunc('01-01-01', [1, 1, 1])
+  })
+  it('1-1-1', () => {
+    testFunc('1-1-1', [1, 1, 1])
+  })
+  it('0000-01-01', () => {
+    testFunc('0000-01-01', [0, 1, 1])
+  })
+  it('0-01-01', () => {
+    testFunc('0-01-01', [0, 1, 1])
+  })
+
+  // マイナス年
+  it('-1-01-01', () => {
+    testFunc('-1-01-01', [-1, 1, 1])
+  })
+  it('-10-01-01', () => {
+    testFunc('-10-01-01', [-10, 1, 1])
+  })
+  it('-10-01-01', () => {
+    testFunc('-10-01-01', [-10, 1, 1])
+  })
+  it('-100-01-01', () => {
+    testFunc('-100-01-01', [-100, 1, 1])
+  })
+  it('-1000-01-01', () => {
+    testFunc('-1000-01-01', [-1000, 1, 1])
+  })
+  it('-10000-01-01', () => {
+    testFunc('-10000-01-01', [-10000, 1, 1])
+  })
+
+  // 大きすぎる月や日はプラスされた日付になる
+  it('2020-13-01', () => {
+    testFunc('2020-13-01', [2021, 1, 1])
+  })
+  it('2020-14-01', () => {
+    testFunc('2020-14-01', [2021, 2, 1])
+  })
+  it('2020-01-31', () => {
+    testFunc('2020-01-31', [2020, 1, 31])
+  })
+  it('2020-01-32', () => {
+    testFunc('2020-01-32', [2020, 2, 1])
+  })
+  it('2020-01-33', () => {
+    testFunc('2020-01-33', [2020, 2, 2])
+  })
+
+  // 小さすぎたり大きすぎたりするとエラー
+  it('275760-01-01', () => {
+    testFunc('275760-01-01', [275760, 1, 1])
+  })
+  it('275761-01-01 大きすぎてエラー', () => {
+    testFunc('275761-01-01', 'error')
+  })
+  it('-271820-01-01', () => {
+    testFunc('-271820-01-01', [-271820, 1, 1])
+  })
+  it('-271821-01-01', () => {
+    testFunc('-271821-01-01', 'error')
+  })
+
+  // 文字列がおかしいとエラー
+  it('2020-01-01-01', () => {
+    testFunc('2020-01-01-01', 'error')
+  })
+  it('2020--01-01', () => {
+    testFunc('2020--01-01', 'error')
+  })
+  it('2020-01--01', () => {
+    testFunc('2020-01--01', 'error')
+  })
+  it('--2020-01-01', () => {
+    testFunc('--2020-01-01', 'error')
+  })
+  it(' 2020-01-01', () => {
+    testFunc(' 2020-01-01', 'error')
   })
 })
